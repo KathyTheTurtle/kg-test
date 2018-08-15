@@ -38,17 +38,17 @@
 
     <script>
       (function() {
+        const BLUE_JAYS = 'Blue Jays';
+
         // Get the query params
         const params = (new URL(location)).searchParams;
 
         // Set the date. If the date query param is not set, set it to '2017-07-01'
         let dateParam = params.get('date');
         let date;
-        if (dateParam) {
-          date = new Date(dateParam);
-        } else {
-          date = new Date('2017-07-01T12:00:00.00Z');
-        }
+        dateParam
+          ? date = new Date(dateParam)
+          : date = new Date('2017-07-01T12:00:00.00Z');
 
         // Display the selected date
         document.getElementById('date').innerHTML = date.toDateString();
@@ -95,7 +95,7 @@
           row.appendChild(status);
 
           // If the home team is the blue jays, put it at the top
-          if (game.home_team_name === 'Blue Jays') {
+          if (game.home_team_name === BLUE_JAYS) {
             gamesList.prepend(row);
           } else {
             gamesList.appendChild(row);
