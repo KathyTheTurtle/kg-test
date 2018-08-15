@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>List View</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class=".col-md-6 .col-md-offset-3">
+          <nav aria-label="...">
+            <ul class="pager">
+              <li><a id="previous">Previous</a></li>
+              <li id="date"></li>
+              <li><a id="next">Next</a></li>
+            </ul>
+          </nav>
+
+          <table class="table table-hover">
+            <thead>
+              <tr id="header-row">
+                <th>Home</th>
+                <th>Away</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="games-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        // Get the query params
+        const params = (new URL(location)).searchParams;
+
+        // Set the date. If the date query param is not set, set it to '2017-07-01'
+        let dateParam = params.get('date');
+        let date;
+        if (dateParam) {
+          date = new Date(dateParam);
+        } else {
+          date = new Date('2017-07-01T12:00:00.00Z');
+        }
+
+        // Display the selected date
+        document.getElementById('date').innerHTML = date.toDateString();
+
+        // Add listeners to the previous and next buttons so that we can switch
+        // the date
+        document.getElementById('previous').addEventListener('click', () => {
+          date.setDate(date.getDate() - 1);
+          window.location.search = `?date=${date.toISOString()}`;
+        });
+        document.getElementById('next').addEventListener('click', () => {
+          date.setDate(date.getDate() + 1);
+          window.location.search = `?date=${date.toISOString()}`;
+        });
+
+        // Fetch the data
+        const formattedDay = ('00' + String(date.getDate())).slice(-2);
+        const formattedMonth = ('00' + String(date.getMonth() + 1)).slice(-2);
+        let rdata;
+        fetch(`http://gd2.mlb.com/components/game/mlb/year_${date.getFullYear()}/month_${formattedMonth}/day_${formattedDay}/master_scoreboard.json`)
+          .then((response) => {
+            return response.json();
+          })
+          .then((json) => {
+            const gamesList = document.getElementById('games-list');
+
+            // Iterate through each game and populate the table appropriately
+            json.data.games.game.forEach((game) => {
+              const row = document.createElement('tr');
+
+              const homeInfo = document.createElement('td');
+              game.linescore.r.home
+                ? homeInfo.innerHTML = `${game.home_team_name} - ${game.linescore.r.home}`
+                : homeInfo.innerHTML = game.home_team_name;
+
+              const awayInfo = document.createElement('td');
+              game.linescore.r.away
+                ? awayInfo.innerHTML = `${game.away_team_name} - ${game.linescore.r.away}`
+                : awayInfo.innerHTML = game.away_team_name;
+
+              const status = document.createElement('td');
+              status.innerHTML = game.status.status;
+
+              row.appendChild(homeInfo);
+              row.appendChild(awayInfo);
+              row.appendChild(status);
+
+              // If the home team is the blue jays, put it at the top
+              if (game.home_team_name === 'Blue Jays') {
+                gamesList.prepend(row);
+              } else {
+                gamesList.appendChild(row);
+              }
+            });
+          });
+      }());
+    </script>
+  </body>
+</html>
