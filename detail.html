@@ -1,9 +1,137 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset=utf-8>
     <title>Detail View</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   </head>
   <body>
+    <div class="container">
+      <div class="row">
+        <div class=".col-md-6 .col-md-offset-3">
+          <table class="table table-hover">
+            <thead>
+              <tr id="header-row"></tr>
+            </thead>
+            <tbody>
+              <tr id="home-row" class=""></tr>
+              <tr id="away-row"></tr>
+            </tbody>
+          </table>
+          Please click on the buttons below to get the stats!
+          <br><br>
+          <button id="home-stats">Home stats</div>
+          <button id="away-stats">Away stats</div>
+          <br>
+          <table class="table table-hover">
+            <thead>
+              <tr id="stats-header-row">
+                <td>Name</td>
+                <td>AB</td>
+                <td>RH</td>
+                <td>RBI</td>
+                <td>BB</td>
+                <td>SO</td>
+                <td>AVG</td>
+              </tr>
+            </thead>
+            <tbody id="batting-stats">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function() {
+        const addHeader = (header) => {
+          const headerElement = document.createElement('th');
+          headerElement.innerText = header;
+          document.getElementById('header-row').appendChild(headerElement);
+        }
 
+        // Add the inning table headers
+        addHeader('Team');
+        for (let i = 1; i < 10; i++) {
+          addHeader(i);
+        }
+        ['R', 'H', 'E'].forEach((header) => {
+          addHeader(header);
+        });
+
+        // Get the param to fetch boxscore
+        const params = (new URL(location)).searchParams;
+        let gameData = params.get('game-data');
+
+        fetch(`http://gd2.mlb.com${gameData}/boxscore.json`)
+          .then((response) => {
+            return response.json();
+          })
+          .then((json) => {
+            const boxscore = json.data.boxscore;
+            console.log(boxscore); // Delete this later
+
+            const addRowData = (row, rowData) => {
+              const data = document.createElement('td');
+              data.innerText = rowData;
+              row.appendChild(data);
+            }
+
+            // Get the home and away rows
+            const homeRow = document.getElementById('home-row');
+            const awayRow = document.getElementById('away-row');
+
+            // Add the team names
+            addRowData(homeRow, boxscore.home_fname);
+            addRowData(awayRow, boxscore.away_fname);
+
+            // Add the inning scores
+            boxscore.linescore.inning_line_score.forEach((inning) => {
+              addRowData(homeRow, inning.home);
+              addRowData(awayRow, inning.away);
+            });
+
+            // Add the runs, hits, and errors
+            addRowData(homeRow, boxscore.linescore.home_team_runs);
+            addRowData(homeRow, boxscore.linescore.home_team_hits);
+            addRowData(homeRow, boxscore.linescore.home_team_errors);
+            addRowData(awayRow, boxscore.linescore.away_team_runs);
+            addRowData(awayRow, boxscore.linescore.away_team_hits);
+            addRowData(awayRow, boxscore.linescore.away_team_errors);
+
+            // Add click listeners to update the batting stats
+            document.getElementById('home-stats').addEventListener('click', () => {
+              const stats = document.getElementById('batting-stats');
+              stats.innerHTML = ''
+              boxscore.batting[0].batter.forEach((batter) => {
+                const batterRow = document.createElement('tr');
+                addRowData(batterRow, batter.name);
+                addRowData(batterRow, batter.ab);
+                addRowData(batterRow, batter.rh);
+                addRowData(batterRow, batter.rbi);
+                addRowData(batterRow, batter.bb);
+                addRowData(batterRow, batter.so);
+                addRowData(batterRow, batter.avg);
+                stats.appendChild(batterRow);
+              });
+            });
+
+            document.getElementById('away-stats').addEventListener('click', () => {
+              const stats = document.getElementById('batting-stats');
+              stats.innerHTML = ''
+              boxscore.batting[1].batter.forEach((batter) => {
+                const batterRow = document.createElement('tr');
+                addRowData(batterRow, batter.name);
+                addRowData(batterRow, batter.ab);
+                addRowData(batterRow, batter.rh);
+                addRowData(batterRow, batter.rbi);
+                addRowData(batterRow, batter.bb);
+                addRowData(batterRow, batter.so);
+                addRowData(batterRow, batter.avg);
+                stats.appendChild(batterRow);
+              });
+            });
+          });
+      }());
+    </script>
   </body>
 </html>

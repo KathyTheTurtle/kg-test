@@ -94,6 +94,10 @@
           row.appendChild(awayInfo);
           row.appendChild(status);
 
+          row.addEventListener('click', () => {
+            window.location.href = `./detail.html?game-data=${game.game_data_directory}`;
+          })
+
           // If the home team is the blue jays, put it at the top
           if (game.home_team_name === BLUE_JAYS) {
             gamesList.prepend(row);
